@@ -25,9 +25,9 @@ public class FirewallVpnService extends VpnService {
     private static final String CHANNEL_ID = "fire_vpn_channel";
     private static final int NOTIFICATION_ID = 1;
 
-    public static final String ACTION_START = "com.fire.firewall.START";
-    public static final String ACTION_STOP = "com.fire.firewall.STOP";
-    public static final String ACTION_RELOAD_RULES = "com.fire.firewall.RELOAD_RULES";
+    public static final String ACTION_START = "com.nexusbuild.firewall.START";
+    public static final String ACTION_STOP = "com.nexusbuild.firewall.STOP";
+    public static final String ACTION_RELOAD_RULES = "com.nexusbuild.firewall.RELOAD_RULES";
 
     private static volatile boolean running = false;
     private ParcelFileDescriptor vpnInterface;
