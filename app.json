@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "Firewall",
+    "slug": "firewall",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#1a1a2e"
+    },
+    "android": {
+      "package": "com.nexusbuild.firewall",
+      "adaptiveIcon": {
+        "backgroundColor": "#1a1a2e"
+      }
+    },
+    "plugins": []
+  }
+}
