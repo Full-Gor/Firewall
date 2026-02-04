@@ -1,5 +1,21 @@
 # Firewall App - Changelog
 
+## Version 1.2.0 (04/02/2026)
+
+### Changement majeur: Filtrage DNS global
+
+- **Suppression du blocage par app**: Les switches ne bloquent plus le trafic complet d'une app
+- **AdGuard DNS**: Toutes les apps passent par AdGuard DNS (94.140.14.14) qui bloque pubs/trackers automatiquement
+- **Interface simplifiée**: L'onglet Firewall explique maintenant le fonctionnement DNS
+
+### Pourquoi ce changement?
+
+Le blocage par app (`addAllowedApplication`) bloquait TOUT le trafic, pas juste les pubs. YouTube switch ON = plus de vidéos. Ce n'était pas le comportement voulu.
+
+La nouvelle approche utilise un DNS filtrant (AdGuard) qui bloque les domaines publicitaires connus tout en laissant passer le contenu légitime.
+
+---
+
 ## Version 1.1.0 (04/02/2026)
 
 ### Corrections

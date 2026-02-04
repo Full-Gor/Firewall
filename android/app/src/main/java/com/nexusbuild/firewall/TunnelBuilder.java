@@ -48,43 +48,12 @@ public class TunnelBuilder {
                 Log.w(TAG, "Could not exclude own package");
             }
 
-            // BLOQUER les apps marquées dans RuleManager
-            // Stratégie: utiliser addAllowedApplication pour les apps NON bloquées
-            // Les apps bloquées ne sont pas ajoutées = pas de route = pas d'internet
-            List<AppRule> appRules = ruleManager.getAppRules();
-            int blockedCount = 0;
+            // MODE FILTRAGE DNS GLOBAL
+            // Toutes les apps passent par le VPN avec DNS filtrant (AdGuard)
+            // Les switches servent maintenant à marquer les apps pour filtrage DNS personnalisé
+            // Plus de blocage total - juste du filtrage DNS
 
-            // Récupérer toutes les apps installées
-            List<android.content.pm.ApplicationInfo> installedApps =
-                context.getPackageManager().getInstalledApplications(0);
-
-            for (android.content.pm.ApplicationInfo appInfo : installedApps) {
-                String pkg = appInfo.packageName;
-                if (pkg.equals(context.getPackageName())) continue; // Skip notre app
-
-                // Vérifier si l'app est bloquée
-                boolean isBlocked = false;
-                for (AppRule rule : appRules) {
-                    if (rule.getPackageName().equals(pkg) && rule.isBlocked()) {
-                        isBlocked = true;
-                        blockedCount++;
-                        Log.i(TAG, "Blocking app: " + pkg);
-                        break;
-                    }
-                }
-
-                // Si non bloquée, l'ajouter au VPN (elle aura internet via VPN)
-                if (!isBlocked) {
-                    try {
-                        builder.addAllowedApplication(pkg);
-                    } catch (PackageManager.NameNotFoundException e) {
-                        // App désinstallée entre temps
-                    }
-                }
-                // Si bloquée: pas ajoutée = pas de route réseau = pas d'internet
-            }
-
-            Log.i(TAG, "VPN configured - " + blockedCount + " apps blocked, using AdGuard DNS");
+            Log.i(TAG, "VPN configured - All apps routed through filtered DNS (AdGuard)");
 
             return builder.establish();
         } catch (Exception e) {

@@ -295,19 +295,15 @@ export default function App() {
 
   const renderFirewallTab = () => (
     <View style={styles.tabContent}>
-      <Text style={styles.sectionTitle}>Apps protegees</Text>
+      <Text style={styles.sectionTitle}>Filtrage DNS</Text>
       <Text style={styles.helpText}>
-        Active le switch pour bloquer l'acces Internet d'une app.
+        VPN actif = AdGuard DNS bloque pubs/trackers pour toutes les apps automatiquement.
       </Text>
-      <FlatList
-        data={apps}
-        renderItem={renderAppItem}
-        keyExtractor={(item) => item.packageName}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>Chargement...</Text>
-        }
-      />
+      <View style={styles.infoBox}>
+        <Text style={styles.infoBoxText}>
+          Le VPN route tout le trafic DNS vers AdGuard (94.140.14.14) qui bloque automatiquement les pubs et trackers connus.
+        </Text>
+      </View>
     </View>
   );
 
@@ -876,5 +872,16 @@ const styles = StyleSheet.create({
     color: '#ff6b6b',
     fontSize: 14,
     fontWeight: '600',
+  },
+  infoBox: {
+    backgroundColor: '#2a3a4e',
+    padding: 16,
+    borderRadius: 8,
+    marginTop: 20,
+  },
+  infoBoxText: {
+    color: '#aaddff',
+    fontSize: 14,
+    lineHeight: 20,
   },
 });
