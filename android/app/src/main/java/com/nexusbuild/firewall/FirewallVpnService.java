@@ -16,6 +16,8 @@ import androidx.core.app.NotificationCompat;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -220,32 +222,96 @@ public class FirewallVpnService extends VpnService {
 
         // Check DNS (UDP port 53)
         if (protocol == 17) { // UDP
-            int destPort = packet.getShort(22) & 0xFFFF;
+            int headerLength = (packet.get(0) & 0x0F) * 4;
+            int destPort = packet.getShort(headerLength + 2) & 0xFFFF;
+            int srcPort = packet.getShort(headerLength) & 0xFFFF;
+
             if (destPort == 53) {
                 // DNS request - intercept and filter
-                ByteBuffer response = dnsInterceptor.processDnsRequest(packet);
-                if (response != null) {
+                ByteBuffer blockedResponse = dnsInterceptor.processDnsRequest(packet);
+                if (blockedResponse != null) {
                     // Domain was blocked, send NXDOMAIN response
-                    out.write(response.array(), 0, response.limit());
+                    out.write(blockedResponse.array(), 0, blockedResponse.limit());
                     connectionLogger.logBlocked(destIp, destPort, uid, "DNS_BLOCKED");
                     return;
                 }
+
+                // Forward DNS request to real DNS server
+                ByteBuffer dnsResponse = forwardDnsRequest(packet, headerLength);
+                if (dnsResponse != null) {
+                    out.write(dnsResponse.array(), 0, dnsResponse.limit());
+                }
+                return;
             }
         }
 
-        // Check if packet should be blocked by rules
-        if (packetFilter.shouldBlock(packet, uid)) {
-            connectionLogger.logBlocked(destIp, 0, uid, "RULE_BLOCKED");
-            dataUsageTracker.trackBlocked(uid, packet.limit());
-            return;
-        }
-
-        // Allow packet through
+        // Non-DNS packets: allow through (VPN only routes DNS in this config)
         dataUsageTracker.trackAllowed(uid, packet.limit());
+    }
 
-        // In a real implementation, we would forward the packet
-        // For a local VPN, we need to handle the actual forwarding
-        // This is simplified - full implementation would use raw sockets
+    private ByteBuffer forwardDnsRequest(ByteBuffer packet, int ipHeaderLength) {
+        try {
+            // Extract DNS query (skip IP header + UDP header)
+            int udpHeaderLength = 8;
+            int dnsOffset = ipHeaderLength + udpHeaderLength;
+            int dnsLength = packet.limit() - dnsOffset;
+
+            byte[] dnsQuery = new byte[dnsLength];
+            packet.position(dnsOffset);
+            packet.get(dnsQuery);
+
+            // Create protected socket (bypasses VPN)
+            DatagramSocket socket = new DatagramSocket();
+            protect(socket);
+            socket.setSoTimeout(5000);
+
+            // Send to real DNS server
+            InetAddress dnsServer = InetAddress.getByName("8.8.8.8");
+            DatagramPacket request = new DatagramPacket(dnsQuery, dnsQuery.length, dnsServer, 53);
+            socket.send(request);
+
+            // Receive response
+            byte[] responseBuffer = new byte[512];
+            DatagramPacket response = new DatagramPacket(responseBuffer, responseBuffer.length);
+            socket.receive(response);
+            socket.close();
+
+            // Build response packet (swap src/dst IP and ports)
+            int totalLength = ipHeaderLength + udpHeaderLength + response.getLength();
+            ByteBuffer responsePacket = ByteBuffer.allocate(totalLength);
+
+            // Copy and modify IP header
+            packet.position(0);
+            byte[] ipHeader = new byte[ipHeaderLength];
+            packet.get(ipHeader);
+
+            // Swap source and destination IP
+            int srcIp = packet.getInt(12);
+            int dstIp = packet.getInt(16);
+            responsePacket.put(ipHeader);
+            responsePacket.putShort(2, (short) totalLength); // Total length
+            responsePacket.putInt(12, dstIp);  // Swap: original dst becomes src
+            responsePacket.putInt(16, srcIp);  // Swap: original src becomes dst
+
+            // UDP header
+            int srcPort = packet.getShort(ipHeaderLength) & 0xFFFF;
+            int dstPort = packet.getShort(ipHeaderLength + 2) & 0xFFFF;
+            responsePacket.putShort(ipHeaderLength, (short) dstPort);      // Swap ports
+            responsePacket.putShort(ipHeaderLength + 2, (short) srcPort);
+            responsePacket.putShort(ipHeaderLength + 4, (short) (udpHeaderLength + response.getLength()));
+            responsePacket.putShort(ipHeaderLength + 6, (short) 0);  // UDP checksum (optional for IPv4)
+
+            // DNS response data
+            responsePacket.position(dnsOffset);
+            responsePacket.put(response.getData(), 0, response.getLength());
+
+            responsePacket.flip();
+            return responsePacket;
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error forwarding DNS request", e);
+            return null;
+        }
     }
 
     private void createNotificationChannel() {

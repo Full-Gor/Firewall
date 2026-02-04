@@ -31,8 +31,11 @@ public class TunnelBuilder {
             builder.setSession("Fire Firewall")
                    .setMtu(MTU)
                    .addAddress(VPN_ADDRESS, 32)
-                   .addRoute(DNS_SERVER, 32)  // Only route DNS traffic
-                   .addDnsServer(DNS_SERVER)
+                   .addRoute(DNS_SERVER, 32)       // Route DNS Google
+                   .addRoute("8.8.4.4", 32)        // Route DNS Google 2
+                   .addRoute("1.1.1.1", 32)        // Route DNS Cloudflare
+                   .addRoute("1.0.0.1", 32)        // Route DNS Cloudflare 2
+                   .addDnsServer(VPN_ADDRESS)      // Use VPN as DNS server
                    .setBlocking(true);
 
             // Exclude our own app from VPN to avoid loops
@@ -42,7 +45,7 @@ public class TunnelBuilder {
                 Log.w(TAG, "Could not exclude own package");
             }
 
-            Log.i(TAG, "VPN configured for DNS filtering only");
+            Log.i(TAG, "VPN configured for DNS filtering");
 
             return builder.establish();
         } catch (Exception e) {

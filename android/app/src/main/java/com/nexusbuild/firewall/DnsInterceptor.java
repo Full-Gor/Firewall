@@ -87,16 +87,25 @@ public class DnsInterceptor {
     }
 
     private boolean shouldBlockDomain(String domain) {
-        // Check custom domain rules
+        // Check custom domain rules FIRST (user has priority)
         RuleManager ruleManager = RuleManager.getInstance(context);
         for (DomainRule rule : ruleManager.getDomainRules()) {
-            if (domainMatcher.matches(domain, rule.getDomain()) && rule.isBlocked()) {
-                return true;
+            if (rule.isBlocked()) {
+                // Check exact match or subdomain match
+                if (domain.equals(rule.getDomain()) || domain.endsWith("." + rule.getDomain())) {
+                    Log.i(TAG, "Blocking by custom rule: " + domain + " (rule: " + rule.getDomain() + ")");
+                    return true;
+                }
             }
         }
 
-        // Check block list
-        return blockListManager.isBlocked(domain);
+        // Check block list (StevenBlack etc.)
+        if (blockListManager.isBlocked(domain)) {
+            Log.d(TAG, "Blocking by blocklist: " + domain);
+            return true;
+        }
+
+        return false;
     }
 
     private ByteBuffer createNxdomainResponse(ByteBuffer request, int transactionId) {

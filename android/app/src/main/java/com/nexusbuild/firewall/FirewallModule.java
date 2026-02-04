@@ -149,6 +149,14 @@ public class FirewallModule extends ReactContextBaseJavaModule implements Activi
         try {
             RuleManager ruleManager = RuleManager.getInstance(reactContext);
             ruleManager.addDomainRule(new DomainRule(domain, true));
+
+            // Notify VPN service to reload DNS rules if running
+            if (FirewallVpnService.isRunning()) {
+                Intent intent = new Intent(reactContext, FirewallVpnService.class);
+                intent.setAction(FirewallVpnService.ACTION_RELOAD_RULES);
+                reactContext.startService(intent);
+            }
+
             promise.resolve(true);
         } catch (Exception e) {
             promise.reject("ADD_DOMAIN_ERROR", e.getMessage());
@@ -160,6 +168,14 @@ public class FirewallModule extends ReactContextBaseJavaModule implements Activi
         try {
             RuleManager ruleManager = RuleManager.getInstance(reactContext);
             ruleManager.removeDomainRule(domain);
+
+            // Notify VPN service to reload DNS rules if running
+            if (FirewallVpnService.isRunning()) {
+                Intent intent = new Intent(reactContext, FirewallVpnService.class);
+                intent.setAction(FirewallVpnService.ACTION_RELOAD_RULES);
+                reactContext.startService(intent);
+            }
+
             promise.resolve(true);
         } catch (Exception e) {
             promise.reject("REMOVE_DOMAIN_ERROR", e.getMessage());

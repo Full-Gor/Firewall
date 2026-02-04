@@ -260,12 +260,7 @@ export default function App() {
         <Text style={styles.appName}>{item.appName}</Text>
         <Text style={styles.packageName}>{item.packageName}</Text>
       </View>
-      <Switch
-        value={blockedApps[item.packageName] || false}
-        onValueChange={() => toggleAppBlock(item.packageName)}
-        trackColor={{ false: '#3a3a5a', true: '#FF6B35' }}
-        thumbColor={blockedApps[item.packageName] ? '#fff' : '#888'}
-      />
+      <Text style={styles.appProtected}>Protegee</Text>
     </View>
   );
 
@@ -294,15 +289,21 @@ export default function App() {
   };
 
   const renderFirewallTab = () => (
-    <FlatList
-      data={apps}
-      renderItem={renderAppItem}
-      keyExtractor={(item) => item.packageName}
-      contentContainerStyle={styles.listContent}
-      ListEmptyComponent={
-        <Text style={styles.emptyText}>Loading apps...</Text>
-      }
-    />
+    <View style={styles.tabContent}>
+      <Text style={styles.sectionTitle}>Apps protegees</Text>
+      <Text style={styles.helpText}>
+        Toutes les apps sont protegees par le filtrage DNS quand le VPN est actif.
+      </Text>
+      <FlatList
+        data={apps}
+        renderItem={renderAppItem}
+        keyExtractor={(item) => item.packageName}
+        contentContainerStyle={styles.listContent}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>Chargement...</Text>
+        }
+      />
+    </View>
   );
 
   const renderDomainItem = ({ item }: { item: string }) => (
@@ -606,6 +607,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#888',
     marginTop: 2,
+  },
+  appProtected: {
+    fontSize: 12,
+    color: '#4CAF50',
+    fontWeight: '500',
   },
   sectionTitle: {
     fontSize: 20,
