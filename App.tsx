@@ -260,7 +260,12 @@ export default function App() {
         <Text style={styles.appName}>{item.appName}</Text>
         <Text style={styles.packageName}>{item.packageName}</Text>
       </View>
-      <Text style={styles.appProtected}>Protegee</Text>
+      <Switch
+        value={blockedApps[item.packageName] || false}
+        onValueChange={() => toggleAppBlock(item.packageName)}
+        trackColor={{ false: '#3a3a5a', true: '#FF6B35' }}
+        thumbColor={blockedApps[item.packageName] ? '#fff' : '#888'}
+      />
     </View>
   );
 
@@ -292,7 +297,7 @@ export default function App() {
     <View style={styles.tabContent}>
       <Text style={styles.sectionTitle}>Apps protegees</Text>
       <Text style={styles.helpText}>
-        Toutes les apps sont protegees par le filtrage DNS quand le VPN est actif.
+        Active le switch pour bloquer l'acces Internet d'une app.
       </Text>
       <FlatList
         data={apps}
