@@ -49,20 +49,39 @@ public class TunnelBuilder {
             }
 
             // BLOQUER les apps marquées dans RuleManager
-            List<AppRule> blockedApps = ruleManager.getAppRules();
+            // Stratégie: utiliser addAllowedApplication pour les apps NON bloquées
+            // Les apps bloquées ne sont pas ajoutées = pas de route = pas d'internet
+            List<AppRule> appRules = ruleManager.getAppRules();
             int blockedCount = 0;
-            for (AppRule rule : blockedApps) {
-                if (rule.isBlocked()) {
-                    try {
-                        // addDisallowedApplication = app exclue du VPN = PAS d'internet
-                        // car route 0.0.0.0/0 envoie tout dans le VPN qui drop le trafic
-                        builder.addDisallowedApplication(rule.getPackageName());
+
+            // Récupérer toutes les apps installées
+            List<android.content.pm.ApplicationInfo> installedApps =
+                context.getPackageManager().getInstalledApplications(0);
+
+            for (android.content.pm.ApplicationInfo appInfo : installedApps) {
+                String pkg = appInfo.packageName;
+                if (pkg.equals(context.getPackageName())) continue; // Skip notre app
+
+                // Vérifier si l'app est bloquée
+                boolean isBlocked = false;
+                for (AppRule rule : appRules) {
+                    if (rule.getPackageName().equals(pkg) && rule.isBlocked()) {
+                        isBlocked = true;
                         blockedCount++;
-                        Log.i(TAG, "Blocking app: " + rule.getPackageName());
-                    } catch (PackageManager.NameNotFoundException e) {
-                        Log.w(TAG, "App not found: " + rule.getPackageName());
+                        Log.i(TAG, "Blocking app: " + pkg);
+                        break;
                     }
                 }
+
+                // Si non bloquée, l'ajouter au VPN (elle aura internet via VPN)
+                if (!isBlocked) {
+                    try {
+                        builder.addAllowedApplication(pkg);
+                    } catch (PackageManager.NameNotFoundException e) {
+                        // App désinstallée entre temps
+                    }
+                }
+                // Si bloquée: pas ajoutée = pas de route réseau = pas d'internet
             }
 
             Log.i(TAG, "VPN configured - " + blockedCount + " apps blocked, using AdGuard DNS");
