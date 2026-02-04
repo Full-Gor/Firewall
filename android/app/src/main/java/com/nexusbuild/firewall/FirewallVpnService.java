@@ -128,6 +128,47 @@ public class FirewallVpnService extends VpnService {
         if (dnsInterceptor != null) {
             dnsInterceptor.reloadBlockList();
         }
+
+        // Restart VPN to apply new app rules (required for addAllowedApplication changes)
+        if (running) {
+            Log.i(TAG, "Restarting VPN to apply new app rules");
+            restartVpn();
+        }
+    }
+
+    private void restartVpn() {
+        // Stop current VPN
+        shouldRun.set(false);
+        if (vpnThread != null) {
+            vpnThread.interrupt();
+            try {
+                vpnThread.join(1000);
+            } catch (InterruptedException e) {
+                // Ignore
+            }
+            vpnThread = null;
+        }
+        if (vpnInterface != null) {
+            try {
+                vpnInterface.close();
+            } catch (IOException e) {
+                Log.e(TAG, "Error closing VPN interface", e);
+            }
+            vpnInterface = null;
+        }
+
+        // Restart with new rules
+        try {
+            vpnInterface = createVpnInterface();
+            if (vpnInterface != null) {
+                shouldRun.set(true);
+                vpnThread = new Thread(this::runVpnLoop, "FirewallVpnThread");
+                vpnThread.start();
+                Log.i(TAG, "VPN restarted with new rules");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error restarting VPN", e);
+        }
     }
 
     private ParcelFileDescriptor createVpnInterface() {

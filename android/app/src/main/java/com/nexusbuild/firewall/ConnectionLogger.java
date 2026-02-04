@@ -164,6 +164,27 @@ public class ConnectionLogger {
         // Not implemented to avoid performance impact
     }
 
+    public void logBlockedDomain(String domain) {
+        ConnectionLog log = new ConnectionLog(
+            System.currentTimeMillis(),
+            domain,  // Use domain instead of IP
+            0,
+            -1,
+            "DNS_BLOCKED",
+            ""
+        );
+
+        synchronized (logs) {
+            logs.add(0, log);
+            while (logs.size() > MAX_LOGS) {
+                logs.remove(logs.size() - 1);
+            }
+        }
+
+        saveLogs();
+        Log.d(TAG, "Logged blocked domain: " + domain);
+    }
+
     public WritableArray getLogs(int limit) {
         WritableArray result = Arguments.createArray();
         synchronized (logs) {

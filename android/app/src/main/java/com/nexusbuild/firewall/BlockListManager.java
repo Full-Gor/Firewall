@@ -18,6 +18,52 @@ public class BlockListManager {
     private static final String PREFS_NAME = "fire_blocklist";
     private static final String KEY_BLOCKED_DOMAINS = "blocked_domains";
 
+    // Whitelist: CDN légitimes à ne JAMAIS bloquer
+    private static final Set<String> WHITELIST = new HashSet<String>() {{
+        // YouTube
+        add("googlevideo.com");
+        add("ytimg.com");
+        add("youtube.com");
+        add("youtu.be");
+        add("yt3.ggpht.com");
+        add("youtube-nocookie.com");
+        // Google Play Store
+        add("play.google.com");
+        add("googleusercontent.com");
+        add("ggpht.com");
+        add("gstatic.com");
+        add("googleapis.com");
+        add("google.com");
+        // Images/CDN généraux
+        add("cloudflare.com");
+        add("cloudfront.net");
+        add("akamaized.net");
+        add("fastly.net");
+        add("jsdelivr.net");
+        add("cdnjs.cloudflare.com");
+        // AliExpress / Alibaba
+        add("alicdn.com");
+        add("aliexpress.com");
+        add("alibaba.com");
+        add("aliimg.com");
+        // Amazon
+        add("amazon.com");
+        add("amazonaws.com");
+        add("media-amazon.com");
+        // Social media images
+        add("fbcdn.net");
+        add("instagram.com");
+        add("cdninstagram.com");
+        add("twimg.com");
+        add("pbs.twimg.com");
+        // Autres
+        add("imgur.com");
+        add("i.imgur.com");
+        add("redd.it");
+        add("redditmedia.com");
+        add("pinimg.com");
+    }};
+
     private static BlockListManager instance;
     private final Context context;
     private final Set<String> blockedDomains = new HashSet<>();
@@ -63,6 +109,11 @@ public class BlockListManager {
     }
 
     public boolean isBlocked(String domain) {
+        // Check whitelist FIRST - never block these domains
+        if (isWhitelisted(domain)) {
+            return false;
+        }
+
         synchronized (blockedDomains) {
             // Check exact match first
             if (blockedDomains.contains(domain)) {
@@ -80,6 +131,21 @@ public class BlockListManager {
                 if (blockedDomains.contains(parent.toString())) {
                     return true;
                 }
+            }
+        }
+        return false;
+    }
+
+    private boolean isWhitelisted(String domain) {
+        // Check exact match
+        if (WHITELIST.contains(domain)) {
+            return true;
+        }
+
+        // Check if domain ends with a whitelisted domain
+        for (String whitelisted : WHITELIST) {
+            if (domain.equals(whitelisted) || domain.endsWith("." + whitelisted)) {
+                return true;
             }
         }
         return false;

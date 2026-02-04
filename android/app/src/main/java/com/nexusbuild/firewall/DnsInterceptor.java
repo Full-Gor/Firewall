@@ -50,6 +50,9 @@ public class DnsInterceptor {
             // Check if domain should be blocked
             if (shouldBlockDomain(domain)) {
                 Log.i(TAG, "Blocking DNS request for: " + domain);
+                // Log the blocked domain
+                ConnectionLogger logger = ConnectionLogger.getInstance(context);
+                logger.logBlockedDomain(domain);
                 return createNxdomainResponse(packet, transactionId);
             }
 
