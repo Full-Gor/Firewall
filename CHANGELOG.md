@@ -1,5 +1,24 @@
 # Firewall App - Changelog
 
+## Version 1.1.0 (04/02/2026)
+
+### Corrections
+
+- **Fix DNS Forwarding**: Le VPN forward maintenant correctement les requêtes DNS autorisées vers 8.8.8.8
+- **Fix domaines custom**: Les domaines ajoutés manuellement sont maintenant correctement bloqués
+- **Fix reload rules**: Ajout/suppression de domaines recharge automatiquement les règles DNS
+- **Nouvelle icône**: Mise à jour de l'icône de l'application
+
+### Architecture DNS
+
+Le VPN fonctionne maintenant en mode "DNS filtering only":
+1. Intercepte uniquement le trafic DNS (port 53)
+2. Vérifie si le domaine est bloqué (custom rules + blocklist)
+3. Si bloqué → renvoie NXDOMAIN
+4. Si autorisé → forward vers 8.8.8.8 et renvoie la réponse
+
+---
+
 ## Version 1.0.0 (04/02/2026)
 
 ### Fonctionnalités intégrées
