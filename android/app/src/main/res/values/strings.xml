@@ -2,4 +2,7 @@
   <string name="app_name">Firewall</string>
   <string name="expo_splash_screen_resize_mode" translatable="false">contain</string>
   <string name="expo_splash_screen_status_bar_translucent" translatable="false">false</string>
+  <string name="vpn_notification_channel">Firewall VPN</string>
+  <string name="vpn_notification_title">Firewall Active</string>
+  <string name="vpn_notification_text">Protection en cours...</string>
 </resources>
