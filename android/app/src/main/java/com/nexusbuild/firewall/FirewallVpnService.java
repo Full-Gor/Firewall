@@ -228,11 +228,11 @@ public class FirewallVpnService extends VpnService {
 
             if (destPort == 53) {
                 // DNS request - intercept and filter
-                ByteBuffer blockedResponse = dnsInterceptor.processDnsRequest(packet);
+                ByteBuffer blockedResponse = dnsInterceptor.processDnsRequest(packet, uid);
                 if (blockedResponse != null) {
                     // Domain was blocked, send NXDOMAIN response
                     out.write(blockedResponse.array(), 0, blockedResponse.limit());
-                    connectionLogger.logBlocked(destIp, destPort, uid, "DNS_BLOCKED");
+                    // Note: domain logging is done in DnsInterceptor with proper domain name
                     return;
                 }
 

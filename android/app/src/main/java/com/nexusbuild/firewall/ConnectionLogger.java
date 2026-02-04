@@ -165,13 +165,20 @@ public class ConnectionLogger {
     }
 
     public void logBlockedDomain(String domain) {
+        logBlockedDomainWithUid(domain, -1);
+    }
+
+    public void logBlockedDomainWithUid(String domain, int uid) {
+        String packageName = getPackageNameForUid(uid);
+        Log.i(TAG, "=== DNS BLOCKED: " + domain + " (uid=" + uid + ", pkg=" + packageName + ") ===");
+
         ConnectionLog log = new ConnectionLog(
             System.currentTimeMillis(),
             domain,  // Use domain instead of IP
             0,
-            -1,
+            uid,
             "DNS_BLOCKED",
-            ""
+            packageName
         );
 
         synchronized (logs) {
@@ -182,7 +189,6 @@ public class ConnectionLogger {
         }
 
         saveLogs();
-        Log.d(TAG, "Logged blocked domain: " + domain);
     }
 
     public WritableArray getLogs(int limit) {

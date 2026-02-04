@@ -25,6 +25,10 @@ public class DnsInterceptor {
     }
 
     public ByteBuffer processDnsRequest(ByteBuffer packet) {
+        return processDnsRequest(packet, -1);
+    }
+
+    public ByteBuffer processDnsRequest(ByteBuffer packet, int uid) {
         try {
             // Skip IP header (20 bytes) and UDP header (8 bytes)
             int dnsOffset = 28;
@@ -47,15 +51,19 @@ public class DnsInterceptor {
                 return null;
             }
 
+            // Log all DNS requests for debugging
+            Log.d(TAG, "DNS request: " + domain + " (uid=" + uid + ")");
+
             // Check if domain should be blocked
             if (shouldBlockDomain(domain)) {
-                Log.i(TAG, "Blocking DNS request for: " + domain);
-                // Log the blocked domain
+                Log.i(TAG, "BLOCKING DNS request for: " + domain);
+                // Log the blocked domain with package info
                 ConnectionLogger logger = ConnectionLogger.getInstance(context);
-                logger.logBlockedDomain(domain);
+                logger.logBlockedDomainWithUid(domain, uid);
                 return createNxdomainResponse(packet, transactionId);
             }
 
+            Log.d(TAG, "ALLOWING DNS request for: " + domain);
             return null; // Allow the request
         } catch (Exception e) {
             Log.e(TAG, "Error processing DNS request", e);
