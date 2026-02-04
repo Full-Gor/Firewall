@@ -23,6 +23,7 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~18.3.12",
+    "expo-build-properties": "^1.0.10",
     "typescript": "~5.3.3"
   },
   "private": true
