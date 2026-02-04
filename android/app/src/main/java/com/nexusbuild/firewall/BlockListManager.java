@@ -19,14 +19,8 @@ public class BlockListManager {
     private static final String KEY_BLOCKED_DOMAINS = "blocked_domains";
 
     // Whitelist: CDN légitimes à ne JAMAIS bloquer
+    // NOTE: YouTube retiré pour permettre le blocage
     private static final Set<String> WHITELIST = new HashSet<String>() {{
-        // YouTube
-        add("googlevideo.com");
-        add("ytimg.com");
-        add("youtube.com");
-        add("youtu.be");
-        add("yt3.ggpht.com");
-        add("youtube-nocookie.com");
         // Google Play Store
         add("play.google.com");
         add("googleusercontent.com");
@@ -111,12 +105,14 @@ public class BlockListManager {
     public boolean isBlocked(String domain) {
         // Check whitelist FIRST - never block these domains
         if (isWhitelisted(domain)) {
+            Log.d(TAG, "WHITELIST: " + domain + " (allowed)");
             return false;
         }
 
         synchronized (blockedDomains) {
             // Check exact match first
             if (blockedDomains.contains(domain)) {
+                Log.d(TAG, "BLOCKED: " + domain + " (exact match)");
                 return true;
             }
 
@@ -129,10 +125,12 @@ public class BlockListManager {
                     parent.append(parts[j]);
                 }
                 if (blockedDomains.contains(parent.toString())) {
+                    Log.d(TAG, "BLOCKED: " + domain + " (parent: " + parent + ")");
                     return true;
                 }
             }
         }
+        Log.d(TAG, "ALLOWED: " + domain + " (not in blocklist)");
         return false;
     }
 
