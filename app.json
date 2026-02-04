@@ -29,6 +29,17 @@
         "android.permission.RECEIVE_BOOT_COMPLETED"
       ]
     },
-    "plugins": []
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "1.9.25"
+          }
+        }
+      ],
+      "./plugins/withVpnStrings",
+      "./plugins/withKotlinVersion"
+    ]
   }
 }
