@@ -18,6 +18,41 @@ public class BlockListManager {
     private static final String PREFS_NAME = "fire_blocklist";
     private static final String KEY_BLOCKED_DOMAINS = "blocked_domains";
 
+    // Domaines de publicité/tracking YouTube à bloquer
+    private static final Set<String> YOUTUBE_AD_DOMAINS = new HashSet<String>() {{
+        // Google Ads / DoubleClick (pubs YouTube)
+        add("googleadservices.com");
+        add("googlesyndication.com");
+        add("doubleclick.net");
+        add("googleads.g.doubleclick.net");
+        add("pagead2.googlesyndication.com");
+        add("ad.doubleclick.net");
+        add("static.doubleclick.net");
+        add("tpc.googlesyndication.com");
+        add("www.googleadservices.com");
+        add("adservice.google.com");
+        // YouTube Tracking/Analytics
+        add("youtube.tracking.exposed");
+        add("s.youtube.com");
+        add("yt3.ggpht.com"); // Thumbnails pubs
+        // Google Analytics
+        add("google-analytics.com");
+        add("analytics.google.com");
+        add("ssl.google-analytics.com");
+        add("www.google-analytics.com");
+        // Autres trackers Google
+        add("adwords.com");
+        add("adsense.com");
+        add("ads.google.com");
+        add("pagead.l.doubleclick.net");
+        add("partnerad.l.doubleclick.net");
+        add("video-ad-stats.googlesyndication.com");
+        add("www.googletagservices.com");
+        add("googletagmanager.com");
+        add("ad.youtube.com");
+        add("ads.youtube.com");
+    }};
+
     // Whitelist: CDN légitimes à ne JAMAIS bloquer
     // NOTE: YouTube retiré pour permettre le blocage
     private static final Set<String> WHITELIST = new HashSet<String>() {{
@@ -103,7 +138,13 @@ public class BlockListManager {
     }
 
     public boolean isBlocked(String domain) {
-        // Check whitelist FIRST - never block these domains
+        // Check YouTube ad domains FIRST (priority absolue)
+        if (isYouTubeAdDomain(domain)) {
+            Log.i(TAG, "YOUTUBE AD BLOCKED: " + domain);
+            return true;
+        }
+
+        // Check whitelist - never block these domains
         if (isWhitelisted(domain)) {
             Log.d(TAG, "WHITELIST: " + domain + " (allowed)");
             return false;
@@ -143,6 +184,21 @@ public class BlockListManager {
         // Check if domain ends with a whitelisted domain
         for (String whitelisted : WHITELIST) {
             if (domain.equals(whitelisted) || domain.endsWith("." + whitelisted)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isYouTubeAdDomain(String domain) {
+        // Check exact match
+        if (YOUTUBE_AD_DOMAINS.contains(domain)) {
+            return true;
+        }
+
+        // Check if domain ends with an ad domain
+        for (String adDomain : YOUTUBE_AD_DOMAINS) {
+            if (domain.endsWith("." + adDomain)) {
                 return true;
             }
         }
