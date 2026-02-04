@@ -25,11 +25,13 @@ apply plugin: "com.facebook.react.rootproject"
 
 allprojects {
     // Suppress Kotlin version compatibility check for Compose Compiler
+    // Compose Compiler 1.5.14 is compatible with Kotlin 1.9.24
+    // Compose Compiler 1.5.15 requires Kotlin 1.9.25 - we downgrade to 1.5.14
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
         kotlinOptions {
             freeCompilerArgs += [
                 "-P",
-                "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=1.9.24"
+                "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true"
             ]
         }
     }

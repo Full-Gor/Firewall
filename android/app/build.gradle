@@ -87,6 +87,11 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
 
     namespace 'com.nexusbuild.firewall'
+
+    // Compose compiler compatibility fix
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.14"
+    }
     defaultConfig {
         applicationId 'com.nexusbuild.firewall'
         minSdkVersion rootProject.ext.minSdkVersion

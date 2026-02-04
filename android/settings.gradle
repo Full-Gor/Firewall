@@ -38,6 +38,8 @@ dependencyResolutionManagement {
   versionCatalogs {
     reactAndroidLibs {
       from(files(new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim(), "../gradle/libs.versions.toml")))
+      // Override Kotlin version from 1.9.24 to 1.9.25 for Compose Compiler compatibility
+      version('kotlin', '1.9.25')
     }
   }
 }
