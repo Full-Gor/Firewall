@@ -31,36 +31,18 @@ public class TunnelBuilder {
             builder.setSession("Fire Firewall")
                    .setMtu(MTU)
                    .addAddress(VPN_ADDRESS, 32)
-                   .addRoute(VPN_ROUTE, VPN_PREFIX)
+                   .addRoute(DNS_SERVER, 32)  // Only route DNS traffic
                    .addDnsServer(DNS_SERVER)
                    .setBlocking(true);
 
-            // Get blocked apps from RuleManager
-            RuleManager ruleManager = RuleManager.getInstance(context);
-            List<AppRule> appRules = ruleManager.getAppRules();
-
-            boolean hasBlockedApps = false;
-            for (AppRule rule : appRules) {
-                if (rule.isBlocked()) {
-                    hasBlockedApps = true;
-                    break;
-                }
+            // Exclude our own app from VPN to avoid loops
+            try {
+                builder.addDisallowedApplication(context.getPackageName());
+            } catch (PackageManager.NameNotFoundException e) {
+                Log.w(TAG, "Could not exclude own package");
             }
 
-            if (hasBlockedApps) {
-                // Route ONLY blocked apps through VPN (others bypass)
-                for (AppRule rule : appRules) {
-                    if (rule.isBlocked()) {
-                        try {
-                            builder.addAllowedApplication(rule.getPackageName());
-                            Log.i(TAG, "Blocking app: " + rule.getPackageName());
-                        } catch (PackageManager.NameNotFoundException e) {
-                            Log.w(TAG, "Package not found: " + rule.getPackageName());
-                        }
-                    }
-                }
-            }
-            // If no apps are blocked, VPN only does DNS filtering for all apps
+            Log.i(TAG, "VPN configured for DNS filtering only");
 
             return builder.establish();
         } catch (Exception e) {
